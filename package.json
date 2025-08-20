@@ -56,8 +56,7 @@
     "typescript": "^5.1.6"
   },
   "dependencies": {
-    "@towncryerio/towncryer-js-sdk": "^1.0.0",
-    "@towncryerio/towncryer-sdk": "file:../typescript-core-sdk"
+    "@towncryerio/towncryer-js-sdk": "^1.0.0"
   },
   "files": [
     "dist",
