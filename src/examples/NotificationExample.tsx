@@ -20,9 +20,10 @@ const sampleNotification: PushNotification = {
 
 // Initialize the SDK (this would typically be done at the app level)
 const towncryerSDK = new Towncryer({
-  accessToken: 'your-api-key-here',
-  refreshToken: 'your-refresh-token-here',
-  baseUrl: 'https://api.towncryer.com',
+  authConfig: {
+    accessToken: 'your-api-key-here',
+    refreshToken: 'your-refresh-token-here',
+  },
   firebase: {
     apiKey: 'your-firebase-api-key',
     authDomain: 'your-app.firebaseapp.com',
