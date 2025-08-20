@@ -1,6 +1,6 @@
 {
   "name": "@towncryerio/towncryer-react-sdk",
-  "version": "0.1.0",
+  "version": "0.0.0-83ebc30",
   "description": "React SDK for integrating with the Towncryer API, wrapping the core SDK",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -31,6 +31,12 @@
     "react-dom": ">=16.8.0"
   },
   "devDependencies": {
+    "@semantic-release/changelog": "^6.0.3",
+    "@semantic-release/commit-analyzer": "^13.0.1",
+    "@semantic-release/git": "^10.0.1",
+    "@semantic-release/github": "^11.0.4",
+    "@semantic-release/npm": "^12.0.2",
+    "@semantic-release/release-notes-generator": "^14.0.3",
     "@storybook/addon-essentials": "^7.0.0",
     "@storybook/addon-interactions": "^7.0.0",
     "@storybook/addon-links": "^7.0.0",
@@ -56,8 +62,7 @@
     "typescript": "^5.1.6"
   },
   "dependencies": {
-    "@towncryerio/towncryer-js-sdk": "^1.0.0",
-    "@towncryerio/towncryer-sdk": "file:../typescript-core-sdk"
+    "@towncryerio/towncryer-js-sdk": "^1.0.0"
   },
   "files": [
     "dist",
