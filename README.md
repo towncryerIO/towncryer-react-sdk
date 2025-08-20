@@ -17,10 +17,10 @@ A React component library and hooks for integrating Towncryer notifications into
 
 ```bash
 # Using npm
-npm install @volvlabs/towncryer-react-sdk @towncryerio/towncryer-js-sdk
+npm install @towncryerio/towncryer-react-sdk @towncryerio/towncryer-js-sdk
 
 # Using yarn
-yarn add @volvlabs/towncryer-react-sdk @towncryerio/towncryer-js-sdk
+yarn add @towncryerio/towncryer-react-sdk @towncryerio/towncryer-js-sdk
 ```
 
 ## Prerequisites
@@ -57,7 +57,7 @@ const towncryerSDK = new TowncryerSDK({
 
 ```jsx
 import React from 'react';
-import { TowncryerProvider } from '@volvlabs/towncryer-react-sdk';
+import { TowncryerProvider } from '@towncryerio/towncryer-react-sdk';
 
 function App() {
   return (
@@ -94,7 +94,7 @@ function App() {
 A small badge that displays the number of unread notifications.
 
 ```jsx
-import { NotificationBadge, useNotifications } from '@volvlabs/towncryer-react-sdk';
+import { NotificationBadge, useNotifications } from '@towncryerio/towncryer-react-sdk';
 
 function Header() {
   const { toggleNotificationCenter } = useNotifications();
@@ -131,7 +131,7 @@ function Header() {
 Displays a toast-style notification banner when new notifications arrive.
 
 ```jsx
-import { NotificationBanner } from '@volvlabs/towncryer-react-sdk';
+import { NotificationBanner } from '@towncryerio/towncryer-react-sdk';
 
 function Notifications() {
   return (
@@ -163,7 +163,7 @@ function Notifications() {
 A dropdown panel that displays all notifications with read/unread status.
 
 ```jsx
-import { NotificationCenter, useNotifications } from '@volvlabs/towncryer-react-sdk';
+import { NotificationCenter, useNotifications } from '@towncryerio/towncryer-react-sdk';
 
 function NotificationPanel() {
   const { showNotificationCenter } = useNotifications();
@@ -195,7 +195,7 @@ function NotificationPanel() {
 A button to request notification permissions from the user.
 
 ```jsx
-import { PermissionRequest } from '@volvlabs/towncryer-react-sdk';
+import { PermissionRequest } from '@towncryerio/towncryer-react-sdk';
 
 function Settings() {
   return (
@@ -232,7 +232,7 @@ function Settings() {
 A custom hook to access and manage notification state.
 
 ```jsx
-import { useNotifications } from '@volvlabs/towncryer-react-sdk';
+import { useNotifications } from '@towncryerio/towncryer-react-sdk';
 
 function NotificationDashboard() {
   const {
@@ -376,7 +376,7 @@ import {
   NotificationBanner,
   PermissionRequest,
   useNotifications
-} from '@volvlabs/towncryer-react-sdk';
+} from '@towncryerio/towncryer-react-sdk';
 
 // Initialize Towncryer SDK
 const towncryerSDK = new TowncryerSDK({
