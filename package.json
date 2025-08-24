@@ -1,6 +1,6 @@
 {
   "name": "@towncryerio/towncryer-react-sdk",
-  "version": "1.0.0",
+  "version": "1.0.0-f34dbd5",
   "description": "React SDK for integrating with the Towncryer API, wrapping the core SDK",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -62,7 +62,7 @@
     "typescript": "^5.1.6"
   },
   "dependencies": {
-    "@towncryerio/towncryer-js-sdk": "^1.0.0"
+    "@towncryerio/towncryer-js-sdk": "^1.2.0"
   },
   "files": [
     "dist",
