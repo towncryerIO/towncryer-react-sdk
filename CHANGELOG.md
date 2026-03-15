@@ -1,3 +1,10 @@
+## [1.0.1](https://github.com/towncryerIO/towncryer-react-sdk/compare/v1.0.0...v1.0.1) (2026-03-15)
+
+
+### Bug Fixes
+
+* bump js sdk version ([#3](https://github.com/towncryerIO/towncryer-react-sdk/issues/3)) ([3ecbf99](https://github.com/towncryerIO/towncryer-react-sdk/commit/3ecbf9914dc829b1ecd8131955916cc04189704a))
+
 # 1.0.0 (2025-08-20)
 
 
