@@ -1,5 +1,34 @@
-import { PushNotification, PushNotificationStats, TowncryerSDK } from '@towncryerio/towncryer-js-sdk';
+import { ITowncryer } from '@towncryerio/towncryer-js-sdk';
 import { PaginatePage } from '@towncryerio/towncryer-js-api-client';
+
+// Firebase Cloud Messaging configuration for browser push notifications
+export interface FirebaseConfig {
+  apiKey: string;
+  authDomain: string;
+  projectId: string;
+  messagingSenderId: string;
+  appId: string;
+  storageBucket: string;
+  measurementId: string;
+  vapidKey?: string;
+}
+
+// Push Notification Models
+export interface PushNotification {
+  id: string;
+  title: string;
+  body: string;
+  data?: object;
+  imageUrl?: string;
+  timestamp: number;
+  read: boolean;
+}
+
+export interface PushNotificationStats {
+  total: number;
+  unread: number;
+  lastUpdated: number;
+}
 
 export interface NotificationTheme {
   // Banner styling
@@ -67,7 +96,7 @@ export interface TowncryerContextValue {
   setTokens: (accessToken: string, refreshToken: string) => void;
   fetchNotifications: (page?: number, size?: number) => Promise<PaginatePage | any>;
   fetchNotificationStats: () => Promise<void>;
-  towncryerSDK: TowncryerSDK | null;
+  towncryerSDK: ITowncryer | null;
 }
 
 export interface NotificationBannerProps {

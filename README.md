@@ -33,24 +33,29 @@ yarn add @towncryerio/towncryer-react-sdk @towncryerio/towncryer-js-sdk
 
 ### 1. Configure the Towncryer SDK
 
-First, initialize the core Towncryer SDK:
+First, initialize the core Towncryer SDK. The core SDK has no browser-global dependencies, so
+Firebase configuration is not part of it — that's supplied separately to `TowncryerProvider` below.
 
 ```jsx
-import { TowncryerSDK } from '@towncryerio/towncryer-js-sdk';
+import Towncryer from '@towncryerio/towncryer-js-sdk';
 
 // Initialize the core SDK
-const towncryerSDK = new TowncryerSDK({
-  accessToken: 'your-towncryer-access-token',
-  refreshToken: 'your-towncryer-refresh-token',
-  firebaseConfig: {
-    apiKey: 'your-firebase-api-key',
-    authDomain: 'your-firebase-project.firebaseapp.com',
-    projectId: 'your-firebase-project-id',
-    storageBucket: 'your-firebase-project.appspot.com',
-    messagingSenderId: 'your-firebase-sender-id',
-    appId: 'your-firebase-app-id'
-  }
+const towncryerSDK = new Towncryer({
+  authConfig: {
+    accessToken: 'your-towncryer-access-token',
+    refreshToken: 'your-towncryer-refresh-token',
+  },
 });
+
+// Firebase config for browser push notifications
+const firebaseConfig = {
+  apiKey: 'your-firebase-api-key',
+  authDomain: 'your-firebase-project.firebaseapp.com',
+  projectId: 'your-firebase-project-id',
+  storageBucket: 'your-firebase-project.appspot.com',
+  messagingSenderId: 'your-firebase-sender-id',
+  appId: 'your-firebase-app-id'
+};
 ```
 
 ### 2. Wrap your application with the TowncryerProvider
@@ -63,6 +68,7 @@ function App() {
   return (
     <TowncryerProvider 
       sdk={towncryerSDK}
+      firebaseConfig={firebaseConfig}
       config={{
         // Optional configuration
         theme: {
@@ -368,7 +374,7 @@ Here's a complete example that shows how to integrate all components:
 ```jsx
 import React from 'react';
 import ReactDOM from 'react-dom';
-import { TowncryerSDK } from '@towncryerio/towncryer-js-sdk';
+import Towncryer from '@towncryerio/towncryer-js-sdk';
 import {
   TowncryerProvider,
   NotificationBadge,
@@ -379,13 +385,17 @@ import {
 } from '@towncryerio/towncryer-react-sdk';
 
 // Initialize Towncryer SDK
-const towncryerSDK = new TowncryerSDK({
-  apiKey: 'your-api-key',
-  firebaseConfig: {
-    apiKey: 'your-firebase-api-key',
-    // ...other firebase config
-  }
+const towncryerSDK = new Towncryer({
+  authConfig: {
+    apiKey: 'your-api-key',
+  },
 });
+
+// Firebase config for browser push notifications
+const firebaseConfig = {
+  apiKey: 'your-firebase-api-key',
+  // ...other firebase config
+};
 
 function NotificationsHeader() {
   const { toggleNotificationCenter, unreadCount } = useNotifications();
@@ -410,7 +420,7 @@ function NotificationsHeader() {
 
 function App() {
   return (
-    <TowncryerProvider sdk={towncryerSDK}>
+    <TowncryerProvider sdk={towncryerSDK} firebaseConfig={firebaseConfig}>
       <NotificationsHeader />
       <main>
         <h1>Welcome to My App</h1>

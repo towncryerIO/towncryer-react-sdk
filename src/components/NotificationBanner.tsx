@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { NotificationBannerProps } from '../types';
-import { PushNotification } from '@towncryerio/towncryer-js-sdk';
+import { NotificationBannerProps, PushNotification } from '../types';
 
 /**
  * NotificationBanner component displays a single notification as a toast-style banner

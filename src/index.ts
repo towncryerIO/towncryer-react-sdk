@@ -10,5 +10,8 @@ export { TowncryerContext, TowncryerProvider, useTowncryer } from './context/Tow
 // Export hooks
 export { useNotifications } from './hooks/useNotifications';
 
+// Export push notification service
+export * from './services/pushNotificationService';
+
 // Export types
 export * from './types';

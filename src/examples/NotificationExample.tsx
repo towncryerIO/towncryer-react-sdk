@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import Towncryer, { PushNotification } from '@towncryerio/towncryer-js-sdk';
+import Towncryer from '@towncryerio/towncryer-js-sdk';
 import {
   TowncryerProvider,
   NotificationBadge,
@@ -8,6 +8,7 @@ import {
   PermissionRequest,
   useNotifications
 } from '../index';
+import { PushNotification } from '../types';
 
 // Sample notification for demo purposes
 const sampleNotification: PushNotification = {
@@ -24,16 +25,18 @@ const towncryerSDK = new Towncryer({
     accessToken: 'your-api-key-here',
     refreshToken: 'your-refresh-token-here',
   },
-  firebase: {
-    apiKey: 'your-firebase-api-key',
-    authDomain: 'your-app.firebaseapp.com',
-    projectId: 'your-project-id',
-    messagingSenderId: '123456789',
-    appId: '1:123456789:web:abc123def456',
-    storageBucket: 'your-storage-bucket',
-    measurementId: 'your-measurement-id'
-  }
 });
+
+// Firebase config for browser push notifications, passed to the provider below
+const firebaseConfig = {
+  apiKey: 'your-firebase-api-key',
+  authDomain: 'your-app.firebaseapp.com',
+  projectId: 'your-project-id',
+  messagingSenderId: '123456789',
+  appId: '1:123456789:web:abc123def456',
+  storageBucket: 'your-storage-bucket',
+  measurementId: 'your-measurement-id'
+};
 
 // Component that uses the notification hooks
 const NotificationControls = () => {
@@ -105,7 +108,7 @@ const NotificationControls = () => {
 // Main example component that wraps everything with the provider
 export const NotificationExample = () => {
   return (
-    <TowncryerProvider sdk={towncryerSDK}>
+    <TowncryerProvider sdk={towncryerSDK} firebaseConfig={firebaseConfig}>
       <NotificationControls />
     </TowncryerProvider>
   );

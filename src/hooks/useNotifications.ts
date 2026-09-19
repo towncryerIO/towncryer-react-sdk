@@ -1,5 +1,5 @@
 import { useTowncryer } from '../context/TowncryerContext';
-import { PushNotification } from '@towncryerio/towncryer-js-sdk';
+import { PushNotification } from '../types';
 
 /**
  * Hook for working with notifications in the Towncryer React SDK
