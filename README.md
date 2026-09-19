@@ -313,6 +313,120 @@ function NotificationDashboard() {
 | `statsStatus` | `'idle' \| 'loading' \| 'success' \| 'error'` | Status of the most recent `fetchNotificationStats` call |
 | `markReadStatus` | `'idle' \| 'loading' \| 'success' \| 'error'` | Status of the most recent `markAsRead`/`markAllAsRead` call |
 
+### useCustomer
+
+A custom hook for creating customers via the core SDK.
+
+```jsx
+import { useCustomer } from '@towncryerio/towncryer-react-sdk';
+
+function SignupForm() {
+  const { createCustomer, createCustomerStatus, error, clearError } = useCustomer();
+
+  const handleSubmit = async () => {
+    await createCustomer({
+      externalId: 'user-123',
+      firstName: 'Ada',
+      identities: [{ type: 'email', value: 'ada@example.com' }],
+    });
+  };
+
+  return (
+    <div>
+      {error && (
+        <p role="alert">
+          {error.message}
+          <button onClick={clearError}>Dismiss</button>
+        </p>
+      )}
+      <button onClick={handleSubmit} disabled={createCustomerStatus === 'loading'}>
+        Create Customer
+      </button>
+    </div>
+  );
+}
+```
+
+#### Return Values
+
+| Name | Type | Description |
+|------|------|-------------|
+| `createCustomer` | `(customer: CreateCustomerRequest) => Promise<ApiResponse \| false>` | Function to create a customer |
+| `lastCreatedCustomer` | `ApiResponse \| null` | The response from the most recent `createCustomer` call |
+| `createCustomerStatus` | `'idle' \| 'loading' \| 'success' \| 'error'` | Status of the most recent `createCustomer` call |
+| `error` | `Error \| null` | The most recent error from SDK initialization or an action, if any |
+| `clearError` | `() => void` | Function to clear the current `error` |
+
+### useEvents
+
+A custom hook for publishing events via the core SDK.
+
+```jsx
+import { useEvents } from '@towncryerio/towncryer-react-sdk';
+
+function OrderCreatedButton({ customerId }) {
+  const { publishEvent, publishEventStatus } = useEvents();
+
+  const handleClick = () => {
+    publishEvent({
+      customer: { externalId: customerId },
+      name: 'order.created',
+      data: { orderId: 'ord_123' },
+    });
+  };
+
+  return (
+    <button onClick={handleClick} disabled={publishEventStatus === 'loading'}>
+      Publish Event
+    </button>
+  );
+}
+```
+
+#### Return Values
+
+| Name | Type | Description |
+|------|------|-------------|
+| `publishEvent` | `(event: PublishEventPayload) => Promise<ApiResponse \| false>` | Function to publish an event |
+| `lastPublishedEvent` | `ApiResponse \| null` | The response from the most recent `publishEvent` call |
+| `publishEventStatus` | `'idle' \| 'loading' \| 'success' \| 'error'` | Status of the most recent `publishEvent` call |
+| `error` | `Error \| null` | The most recent error from SDK initialization or an action, if any |
+| `clearError` | `() => void` | Function to clear the current `error` |
+
+### useSendMessage
+
+A custom hook for sending messages (email, SMS, push) via the core SDK.
+
+```jsx
+import { useSendMessage } from '@towncryerio/towncryer-react-sdk';
+
+function TestMessageForm({ email }) {
+  const { sendMessages, sendMessagesStatus } = useSendMessage();
+
+  const handleSend = () => {
+    sendMessages({
+      emails: [{ recipients: [{ email, name: 'Ada' }], content: 'Test message' }],
+    });
+  };
+
+  return (
+    <button onClick={handleSend} disabled={sendMessagesStatus === 'loading'}>
+      Send Test Message
+    </button>
+  );
+}
+```
+
+#### Return Values
+
+| Name | Type | Description |
+|------|------|-------------|
+| `sendMessages` | `(messages: SendBulkMessagesPayload) => Promise<ScheduleInfo \| false>` | Function to send bulk email/SMS/push messages |
+| `lastSentMessagesInfo` | `ScheduleInfo \| null` | The schedule info from the most recent `sendMessages` call |
+| `sendMessagesStatus` | `'idle' \| 'loading' \| 'success' \| 'error'` | Status of the most recent `sendMessages` call |
+| `error` | `Error \| null` | The most recent error from SDK initialization or an action, if any |
+| `clearError` | `() => void` | Function to clear the current `error` |
+
 ## Customization
 
 ### Theme Customization

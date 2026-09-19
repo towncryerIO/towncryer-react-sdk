@@ -1,3 +1,4 @@
+import { ApiResponse, ScheduleInfo } from '@towncryerio/towncryer-js-api-client';
 import { AsyncStatus, PushNotification, PushNotificationStats } from '../types';
 
 export interface AsyncState<T> {
@@ -17,6 +18,12 @@ export interface TowncryerState {
   notifications: AsyncState<PushNotification[]>;
   stats: AsyncState<PushNotificationStats | null>;
   markRead: AsyncState<null>;
+  /** The most recent `createCustomer()` call. */
+  createCustomer: AsyncState<ApiResponse | null>;
+  /** The most recent `publishEvent()` call. */
+  publishEvent: AsyncState<ApiResponse | null>;
+  /** The most recent `sendMessages()` call. */
+  sendMessages: AsyncState<ScheduleInfo | null>;
   hasPermission: boolean;
   isPermissionRequested: boolean;
   unreadCount: number;
@@ -30,6 +37,9 @@ export const initialTowncryerState: TowncryerState = {
   notifications: idle([]),
   stats: idle(null),
   markRead: idle(null),
+  createCustomer: idle(null),
+  publishEvent: idle(null),
+  sendMessages: idle(null),
   hasPermission: false,
   isPermissionRequested: false,
   unreadCount: 0,
@@ -54,6 +64,15 @@ export type TowncryerAction =
   | { type: 'MARK_READ_SUCCESS'; payload: { notificationId: string } }
   | { type: 'MARK_ALL_READ_SUCCESS' }
   | { type: 'MARK_READ_ERROR'; payload: Error }
+  | { type: 'CREATE_CUSTOMER_START' }
+  | { type: 'CREATE_CUSTOMER_SUCCESS'; payload: ApiResponse }
+  | { type: 'CREATE_CUSTOMER_ERROR'; payload: Error }
+  | { type: 'PUBLISH_EVENT_START' }
+  | { type: 'PUBLISH_EVENT_SUCCESS'; payload: ApiResponse }
+  | { type: 'PUBLISH_EVENT_ERROR'; payload: Error }
+  | { type: 'SEND_MESSAGES_START' }
+  | { type: 'SEND_MESSAGES_SUCCESS'; payload: ScheduleInfo }
+  | { type: 'SEND_MESSAGES_ERROR'; payload: Error }
   | { type: 'CLEAR_ERROR' };
 
 const clearIfErrored = <T>(slice: AsyncState<T>): AsyncState<T> =>
@@ -166,6 +185,39 @@ export function towncryerReducer(state: TowncryerState, action: TowncryerAction)
         lastError: action.payload,
       };
 
+    case 'CREATE_CUSTOMER_START':
+      return { ...state, createCustomer: { ...state.createCustomer, status: 'loading', error: null } };
+    case 'CREATE_CUSTOMER_SUCCESS':
+      return { ...state, createCustomer: { status: 'success', data: action.payload, error: null } };
+    case 'CREATE_CUSTOMER_ERROR':
+      return {
+        ...state,
+        createCustomer: { ...state.createCustomer, status: 'error', error: action.payload },
+        lastError: action.payload,
+      };
+
+    case 'PUBLISH_EVENT_START':
+      return { ...state, publishEvent: { ...state.publishEvent, status: 'loading', error: null } };
+    case 'PUBLISH_EVENT_SUCCESS':
+      return { ...state, publishEvent: { status: 'success', data: action.payload, error: null } };
+    case 'PUBLISH_EVENT_ERROR':
+      return {
+        ...state,
+        publishEvent: { ...state.publishEvent, status: 'error', error: action.payload },
+        lastError: action.payload,
+      };
+
+    case 'SEND_MESSAGES_START':
+      return { ...state, sendMessages: { ...state.sendMessages, status: 'loading', error: null } };
+    case 'SEND_MESSAGES_SUCCESS':
+      return { ...state, sendMessages: { status: 'success', data: action.payload, error: null } };
+    case 'SEND_MESSAGES_ERROR':
+      return {
+        ...state,
+        sendMessages: { ...state.sendMessages, status: 'error', error: action.payload },
+        lastError: action.payload,
+      };
+
     case 'CLEAR_ERROR':
       return {
         ...state,
@@ -174,6 +226,9 @@ export function towncryerReducer(state: TowncryerState, action: TowncryerAction)
         notifications: clearIfErrored(state.notifications),
         stats: clearIfErrored(state.stats),
         markRead: clearIfErrored(state.markRead),
+        createCustomer: clearIfErrored(state.createCustomer),
+        publishEvent: clearIfErrored(state.publishEvent),
+        sendMessages: clearIfErrored(state.sendMessages),
         lastError: null,
       };
 
