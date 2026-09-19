@@ -308,6 +308,10 @@ function NotificationDashboard() {
 | `isInitialized` | `boolean` | Whether the SDK is initialized |
 | `error` | `Error \| null` | The most recent error from SDK initialization or a notification action, if any |
 | `clearError` | `() => void` | Function to clear the current `error` |
+| `initializationStatus` | `'idle' \| 'loading' \| 'success' \| 'error'` | Status of SDK initialization |
+| `notificationsStatus` | `'idle' \| 'loading' \| 'success' \| 'error'` | Status of the most recent `fetchNotifications` call |
+| `statsStatus` | `'idle' \| 'loading' \| 'success' \| 'error'` | Status of the most recent `fetchNotificationStats` call |
+| `markReadStatus` | `'idle' \| 'loading' \| 'success' \| 'error'` | Status of the most recent `markAsRead`/`markAllAsRead` call |
 
 ## Customization
 
