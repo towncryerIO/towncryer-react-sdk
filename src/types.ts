@@ -97,6 +97,10 @@ export interface TowncryerContextValue {
   fetchNotifications: (page?: number, size?: number) => Promise<PaginatePage | any>;
   fetchNotificationStats: () => Promise<void>;
   towncryerSDK: ITowncryer | null;
+  /** The most recent error raised during SDK initialization or a notification action, if any. */
+  error: Error | null;
+  /** Clears the current `error`, e.g. after a consumer has displayed it. */
+  clearError: () => void;
 }
 
 export interface NotificationBannerProps {

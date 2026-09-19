@@ -256,11 +256,19 @@ function NotificationDashboard() {
     getUnreadNotifications,
     getReadNotifications,
     isInitialized,
+    error,
+    clearError,
   } = useNotifications();
   
   return (
     <div>
       <h2>Notifications Dashboard</h2>
+      {error && (
+        <p role="alert">
+          {error.message}
+          <button onClick={clearError}>Dismiss</button>
+        </p>
+      )}
       <p>You have {unreadCount} unread notifications</p>
       <button onClick={toggleNotificationCenter}>Toggle Notification Center</button>
       <button onClick={markAllAsRead}>Mark All Read</button>
@@ -298,6 +306,8 @@ function NotificationDashboard() {
 | `getUnreadNotifications` | `() => PushNotification[]` | Function to get unread notifications |
 | `getReadNotifications` | `() => PushNotification[]` | Function to get read notifications |
 | `isInitialized` | `boolean` | Whether the SDK is initialized |
+| `error` | `Error \| null` | The most recent error from SDK initialization or a notification action, if any |
+| `clearError` | `() => void` | Function to clear the current `error` |
 
 ## Customization
 
