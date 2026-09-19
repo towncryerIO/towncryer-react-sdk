@@ -168,13 +168,36 @@ export const TowncryerProvider: React.FC<TowncryerProviderProps> = ({
       // This assumes the core SDK has a markAllRead method
       // If it doesn't, we would need to iterate through unread notifications
       // and mark each one as read
-      await Promise.all(
-        state.notifications.data
-          .filter(notification => !notification.read)
-          .map(notification => getPushService().markRead(notification.id))
+      const unread = state.notifications.data.filter(notification => !notification.read);
+      const results = await Promise.allSettled(
+        unread.map(notification => getPushService().markRead(notification.id))
       );
 
-      dispatch({ type: 'MARK_ALL_READ_SUCCESS' });
+      const succeededIds: string[] = [];
+      const failures: { notificationId: string; error: Error }[] = [];
+
+      results.forEach((result, index) => {
+        const notificationId = unread[index].id;
+        if (result.status === 'fulfilled') {
+          succeededIds.push(notificationId);
+        } else {
+          failures.push({ notificationId, error: toError(result.reason) });
+        }
+      });
+
+      // Reflect each notification's actual outcome, rather than discarding
+      // every success just because one notification failed to update.
+      dispatch({ type: 'MARK_ALL_READ_SUCCESS', payload: { succeededIds } });
+
+      if (failures.length > 0) {
+        dispatch({
+          type: 'MARK_READ_ERROR',
+          payload: new Error(
+            `Failed to mark ${failures.length} of ${unread.length} notification(s) as read: ` +
+              failures.map(({ notificationId, error }) => `${notificationId} (${error.message})`).join(', ')
+          ),
+        });
+      }
 
       // Refresh stats
       fetchNotificationStats();

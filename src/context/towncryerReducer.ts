@@ -62,7 +62,7 @@ export type TowncryerAction =
   | { type: 'STATS_FETCH_ERROR'; payload: Error }
   | { type: 'MARK_READ_START' }
   | { type: 'MARK_READ_SUCCESS'; payload: { notificationId: string } }
-  | { type: 'MARK_ALL_READ_SUCCESS' }
+  | { type: 'MARK_ALL_READ_SUCCESS'; payload: { succeededIds: string[] } }
   | { type: 'MARK_READ_ERROR'; payload: Error }
   | { type: 'CREATE_CUSTOMER_START' }
   | { type: 'CREATE_CUSTOMER_SUCCESS'; payload: ApiResponse }
@@ -168,16 +168,20 @@ export function towncryerReducer(state: TowncryerState, action: TowncryerAction)
         },
         unreadCount: Math.max(0, state.unreadCount - 1),
       };
-    case 'MARK_ALL_READ_SUCCESS':
+    case 'MARK_ALL_READ_SUCCESS': {
+      const succeededIds = new Set(action.payload.succeededIds);
       return {
         ...state,
         markRead: { status: 'success', data: null, error: null },
         notifications: {
           ...state.notifications,
-          data: state.notifications.data.map(notification => ({ ...notification, read: true })),
+          data: state.notifications.data.map(notification =>
+            succeededIds.has(notification.id) ? { ...notification, read: true } : notification
+          ),
         },
-        unreadCount: 0,
+        unreadCount: Math.max(0, state.unreadCount - succeededIds.size),
       };
+    }
     case 'MARK_READ_ERROR':
       return {
         ...state,
