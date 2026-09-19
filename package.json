@@ -62,7 +62,9 @@
     "typescript": "^5.1.6"
   },
   "dependencies": {
-    "@towncryerio/towncryer-js-sdk": "^1.2.2"
+    "@towncryerio/towncryer-js-api-client": "^1.2.0-f79da7f",
+    "@towncryerio/towncryer-js-sdk": "^1.2.2",
+    "firebase": "^11.9.1"
   },
   "files": [
     "dist",

@@ -1,6 +1,7 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { PushNotification, PushNotificationStats, TowncryerSDK } from '@towncryerio/towncryer-js-sdk';
-import { TowncryerContextValue, TowncryerReactConfig } from '../types';
+import React, { createContext, useContext, useState, useEffect, useRef, ReactNode } from 'react';
+import { TowncryerSDK } from '@towncryerio/towncryer-js-sdk';
+import { FirebaseConfig, PushNotification, PushNotificationStats, TowncryerContextValue, TowncryerReactConfig } from '../types';
+import { FirebasePushNotificationService, PushNotificationService } from '../services/pushNotificationService';
 
 const defaultContextValue: TowncryerContextValue = {
   notifications: [],
@@ -27,14 +28,17 @@ export const TowncryerContext = createContext<TowncryerContextValue>(defaultCont
 
 export interface TowncryerProviderProps {
   sdk: TowncryerSDK;
+  /** Firebase configuration, required to enable browser push notifications. */
+  firebaseConfig?: FirebaseConfig;
   config?: TowncryerReactConfig;
   children: ReactNode;
 }
 
-export const TowncryerProvider: React.FC<TowncryerProviderProps> = ({ 
-  sdk, 
-  config = {}, 
-  children 
+export const TowncryerProvider: React.FC<TowncryerProviderProps> = ({
+  sdk,
+  firebaseConfig,
+  config = {},
+  children
 }) => {
   const [isInitialized, setIsInitialized] = useState(false);
   const [notifications, setNotifications] = useState<PushNotification[]>([]);
@@ -43,25 +47,44 @@ export const TowncryerProvider: React.FC<TowncryerProviderProps> = ({
   const [showNotificationCenter, setShowNotificationCenter] = useState(false);
   const [hasPermission, setHasPermission] = useState(false);
   const [isPermissionRequested, setIsPermissionRequested] = useState(false);
+  const pushServiceRef = useRef<PushNotificationService | null>(null);
+
+  const getPushService = (): PushNotificationService => {
+    if (!pushServiceRef.current) {
+      throw new Error('Push notifications not initialized: no firebaseConfig was provided to TowncryerProvider');
+    }
+    return pushServiceRef.current;
+  };
 
   // Initialize the SDK and set up notification handling
   useEffect(() => {
+    if (!firebaseConfig) {
+      return;
+    }
+
+    pushServiceRef.current = new FirebasePushNotificationService(
+      firebaseConfig,
+      sdk.getEventService(),
+      sdk.getMessagesApi(),
+      sdk.getCustomerId(),
+    );
+
     const initializeSDK = async () => {
       try {
-        await sdk.getPushNotificationService().initialize();
-        
+        await getPushService().initialize();
+
         const permission = await Notification.permission;
         setHasPermission(permission === 'granted');
         setIsPermissionRequested(permission !== 'default');
-        
-        sdk.getPushNotificationService().receiveNotifications((notification) => {
+
+        getPushService().receiveNotifications((notification) => {
           setNotifications(prev => [notification, ...prev]);
-          
+
           setUnreadCount(prev => prev + 1);
-          
+
           fetchNotificationStats();
         });
-        
+
         setIsInitialized(true);
       } catch (error) {
         throw new Error(`Failed to initialize Towncryer SDK: ${error instanceof Error ? error.message : String(error)}`);
@@ -74,12 +97,12 @@ export const TowncryerProvider: React.FC<TowncryerProviderProps> = ({
     return () => {
       // Any cleanup needed for the SDK
     };
-  }, [sdk]);
+  }, [sdk, firebaseConfig]);
 
   const fetchNotifications = async (page: number = 0, size: number = 10) => {
     try {
-      const response = await sdk.getPushNotificationService().getMessageHistory(page, size);
-      
+      const response = await getPushService().getMessageHistory(page, size);
+
       return response;
     } catch (error: any) {
       throw error;
@@ -88,7 +111,7 @@ export const TowncryerProvider: React.FC<TowncryerProviderProps> = ({
 
   const fetchNotificationStats = async () => {
     try {
-      const stats = await sdk.getPushNotificationService().getStats();
+      const stats = await getPushService().getStats();
       setNotificationStats(stats);
       setUnreadCount(stats.unread);
     } catch (error) {
@@ -98,18 +121,18 @@ export const TowncryerProvider: React.FC<TowncryerProviderProps> = ({
 
   const markAsRead = async (notificationId: string) => {
     try {
-      await sdk.getPushNotificationService().markRead(notificationId);
-      
-      setNotifications(prev => 
-        prev.map(notification => 
-          notification.id === notificationId 
-            ? { ...notification, read: true } 
+      await getPushService().markRead(notificationId);
+
+      setNotifications(prev =>
+        prev.map(notification =>
+          notification.id === notificationId
+            ? { ...notification, read: true }
             : notification
         )
       );
-      
+
       setUnreadCount(prev => Math.max(0, prev - 1));
-      
+
       fetchNotificationStats();
     } catch (error) {
       throw new Error(`Failed to mark notification ${notificationId} as read: ${error instanceof Error ? error.message : String(error)}`);
@@ -124,17 +147,17 @@ export const TowncryerProvider: React.FC<TowncryerProviderProps> = ({
       await Promise.all(
         notifications
           .filter(notification => !notification.read)
-          .map(notification => sdk.getPushNotificationService().markRead(notification.id))
+          .map(notification => getPushService().markRead(notification.id))
       );
-      
+
       // Update all notifications in state to reflect read status
-      setNotifications(prev => 
+      setNotifications(prev =>
         prev.map(notification => ({ ...notification, read: true }))
       );
-      
+
       // Reset unread count
       setUnreadCount(0);
-      
+
       // Refresh stats
       fetchNotificationStats();
     } catch (error) {
@@ -146,14 +169,14 @@ export const TowncryerProvider: React.FC<TowncryerProviderProps> = ({
   const requestPermission = async (): Promise<boolean> => {
     try {
       setIsPermissionRequested(true);
-      const granted = await sdk.getPushNotificationService().requestPermission();
+      const granted = await getPushService().requestPermission();
       setHasPermission(granted);
       return granted;
     } catch (error) {
       throw new Error(`Failed to request notification permission: ${error instanceof Error ? error.message : String(error)}`);
     }
   };
-  
+
   // Update access token and reinitialize if needed
   const setAccessToken = (token: string): void => {
     sdk.setAccessToken(token);
@@ -166,8 +189,9 @@ export const TowncryerProvider: React.FC<TowncryerProviderProps> = ({
 
   const setCustomerId = (customerId: string): void => {
     sdk.setCustomerId(customerId);
+    pushServiceRef.current?.setCustomerId(customerId);
   }
-  
+
   // Update both tokens at once
   const setTokens = (accessToken: string, refreshToken: string): void => {
     sdk.setAccessToken(accessToken);
