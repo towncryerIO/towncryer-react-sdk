@@ -22,6 +22,8 @@ const defaultContextValue: TowncryerContextValue = {
   fetchNotifications: async (page?: number, size?: number) => false,
   fetchNotificationStats: async () => {},
   towncryerSDK: null,
+  error: null,
+  clearError: () => {},
 };
 
 export const TowncryerContext = createContext<TowncryerContextValue>(defaultContextValue);
@@ -47,7 +49,12 @@ export const TowncryerProvider: React.FC<TowncryerProviderProps> = ({
   const [showNotificationCenter, setShowNotificationCenter] = useState(false);
   const [hasPermission, setHasPermission] = useState(false);
   const [isPermissionRequested, setIsPermissionRequested] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
   const pushServiceRef = useRef<PushNotificationService | null>(null);
+
+  const clearError = () => setError(null);
+
+  const toError = (value: unknown): Error => (value instanceof Error ? value : new Error(String(value)));
 
   const getPushService = (): PushNotificationService => {
     if (!pushServiceRef.current) {
@@ -87,7 +94,7 @@ export const TowncryerProvider: React.FC<TowncryerProviderProps> = ({
 
         setIsInitialized(true);
       } catch (error) {
-        throw new Error(`Failed to initialize Towncryer SDK: ${error instanceof Error ? error.message : String(error)}`);
+        setError(new Error(`Failed to initialize Towncryer SDK: ${toError(error).message}`));
       }
     };
 
@@ -104,8 +111,9 @@ export const TowncryerProvider: React.FC<TowncryerProviderProps> = ({
       const response = await getPushService().getMessageHistory(page, size);
 
       return response;
-    } catch (error: any) {
-      throw error;
+    } catch (error) {
+      setError(toError(error));
+      return false;
     }
   };
 
@@ -115,7 +123,7 @@ export const TowncryerProvider: React.FC<TowncryerProviderProps> = ({
       setNotificationStats(stats);
       setUnreadCount(stats.unread);
     } catch (error) {
-      throw new Error(`Failed to fetch notification stats: ${error instanceof Error ? error.message : String(error)}`);
+      setError(new Error(`Failed to fetch notification stats: ${toError(error).message}`));
     }
   };
 
@@ -135,7 +143,7 @@ export const TowncryerProvider: React.FC<TowncryerProviderProps> = ({
 
       fetchNotificationStats();
     } catch (error) {
-      throw new Error(`Failed to mark notification ${notificationId} as read: ${error instanceof Error ? error.message : String(error)}`);
+      setError(new Error(`Failed to mark notification ${notificationId} as read: ${toError(error).message}`));
     }
   };
 
@@ -161,7 +169,7 @@ export const TowncryerProvider: React.FC<TowncryerProviderProps> = ({
       // Refresh stats
       fetchNotificationStats();
     } catch (error) {
-      throw new Error(`Failed to mark all notifications as read: ${error instanceof Error ? error.message : String(error)}`);
+      setError(new Error(`Failed to mark all notifications as read: ${toError(error).message}`));
     }
   };
 
@@ -173,7 +181,8 @@ export const TowncryerProvider: React.FC<TowncryerProviderProps> = ({
       setHasPermission(granted);
       return granted;
     } catch (error) {
-      throw new Error(`Failed to request notification permission: ${error instanceof Error ? error.message : String(error)}`);
+      setError(new Error(`Failed to request notification permission: ${toError(error).message}`));
+      return false;
     }
   };
 
@@ -219,6 +228,8 @@ export const TowncryerProvider: React.FC<TowncryerProviderProps> = ({
     fetchNotifications,
     fetchNotificationStats,
     towncryerSDK,
+    error,
+    clearError,
   };
 
   return (

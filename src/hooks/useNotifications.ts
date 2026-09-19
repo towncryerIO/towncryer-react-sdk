@@ -20,6 +20,8 @@ export const useNotifications = () => {
     fetchNotifications,
     fetchNotificationStats,
     towncryerSDK,
+    error,
+    clearError,
   } = useTowncryer();
 
   /**
@@ -88,5 +90,9 @@ export const useNotifications = () => {
     isInitialized,
 
     towncryerSDK,
+
+    // Error handling
+    error,
+    clearError,
   };
 };
