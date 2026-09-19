@@ -30,6 +30,10 @@ export interface PushNotificationStats {
   lastUpdated: number;
 }
 
+// Status of a single async operation exposed by TowncryerContext, so consumers can
+// read one clear state instead of inferring it from several independent booleans/values.
+export type AsyncStatus = 'idle' | 'loading' | 'success' | 'error';
+
 export interface NotificationTheme {
   // Banner styling
   banner: {
@@ -101,6 +105,14 @@ export interface TowncryerContextValue {
   error: Error | null;
   /** Clears the current `error`, e.g. after a consumer has displayed it. */
   clearError: () => void;
+  /** Status of SDK initialization and permission requests. */
+  initializationStatus: AsyncStatus;
+  /** Status of the most recent `fetchNotifications` call. */
+  notificationsStatus: AsyncStatus;
+  /** Status of the most recent `fetchNotificationStats` call. */
+  statsStatus: AsyncStatus;
+  /** Status of the most recent `markAsRead`/`markAllAsRead` call. */
+  markReadStatus: AsyncStatus;
 }
 
 export interface NotificationBannerProps {

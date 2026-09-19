@@ -1,7 +1,8 @@
-import React, { createContext, useContext, useState, useEffect, useRef, ReactNode } from 'react';
+import React, { createContext, useContext, useReducer, useState, useEffect, useRef, ReactNode } from 'react';
 import { ITowncryer } from '@towncryerio/towncryer-js-sdk';
-import { FirebaseConfig, PushNotification, PushNotificationStats, TowncryerContextValue, TowncryerReactConfig } from '../types';
+import { FirebaseConfig, TowncryerContextValue, TowncryerReactConfig } from '../types';
 import { FirebasePushNotificationService, PushNotificationService } from '../services/pushNotificationService';
+import { initialTowncryerState, towncryerReducer } from './towncryerReducer';
 
 const defaultContextValue: TowncryerContextValue = {
   notifications: [],
@@ -24,6 +25,10 @@ const defaultContextValue: TowncryerContextValue = {
   towncryerSDK: null,
   error: null,
   clearError: () => {},
+  initializationStatus: 'idle',
+  notificationsStatus: 'idle',
+  statsStatus: 'idle',
+  markReadStatus: 'idle',
 };
 
 export const TowncryerContext = createContext<TowncryerContextValue>(defaultContextValue);
@@ -42,17 +47,11 @@ export const TowncryerProvider: React.FC<TowncryerProviderProps> = ({
   config = {},
   children
 }) => {
-  const [isInitialized, setIsInitialized] = useState(false);
-  const [notifications, setNotifications] = useState<PushNotification[]>([]);
-  const [notificationStats, setNotificationStats] = useState<PushNotificationStats | null>(null);
-  const [unreadCount, setUnreadCount] = useState(0);
+  const [state, dispatch] = useReducer(towncryerReducer, initialTowncryerState);
   const [showNotificationCenter, setShowNotificationCenter] = useState(false);
-  const [hasPermission, setHasPermission] = useState(false);
-  const [isPermissionRequested, setIsPermissionRequested] = useState(false);
-  const [error, setError] = useState<Error | null>(null);
   const pushServiceRef = useRef<PushNotificationService | null>(null);
 
-  const clearError = () => setError(null);
+  const clearError = () => dispatch({ type: 'CLEAR_ERROR' });
 
   const toError = (value: unknown): Error => (value instanceof Error ? value : new Error(String(value)));
 
@@ -77,24 +76,29 @@ export const TowncryerProvider: React.FC<TowncryerProviderProps> = ({
     );
 
     const initializeSDK = async () => {
+      dispatch({ type: 'INIT_START' });
       try {
         await getPushService().initialize();
 
         const permission = await Notification.permission;
-        setHasPermission(permission === 'granted');
-        setIsPermissionRequested(permission !== 'default');
 
         getPushService().receiveNotifications((notification) => {
-          setNotifications(prev => [notification, ...prev]);
-
-          setUnreadCount(prev => prev + 1);
-
+          dispatch({ type: 'NOTIFICATION_RECEIVED', payload: notification });
           fetchNotificationStats();
         });
 
-        setIsInitialized(true);
+        dispatch({
+          type: 'INIT_SUCCESS',
+          payload: {
+            hasPermission: permission === 'granted',
+            isPermissionRequested: permission !== 'default',
+          },
+        });
       } catch (error) {
-        setError(new Error(`Failed to initialize Towncryer SDK: ${toError(error).message}`));
+        dispatch({
+          type: 'INIT_ERROR',
+          payload: new Error(`Failed to initialize Towncryer SDK: ${toError(error).message}`),
+        });
       }
     };
 
@@ -107,81 +111,83 @@ export const TowncryerProvider: React.FC<TowncryerProviderProps> = ({
   }, [sdk, firebaseConfig]);
 
   const fetchNotifications = async (page: number = 0, size: number = 10) => {
+    dispatch({ type: 'NOTIFICATIONS_FETCH_START' });
     try {
       const response = await getPushService().getMessageHistory(page, size);
+      dispatch({ type: 'NOTIFICATIONS_FETCH_SUCCESS' });
 
       return response;
     } catch (error) {
-      setError(toError(error));
+      dispatch({ type: 'NOTIFICATIONS_FETCH_ERROR', payload: toError(error) });
       return false;
     }
   };
 
   const fetchNotificationStats = async () => {
+    dispatch({ type: 'STATS_FETCH_START' });
     try {
       const stats = await getPushService().getStats();
-      setNotificationStats(stats);
-      setUnreadCount(stats.unread);
+      dispatch({ type: 'STATS_FETCH_SUCCESS', payload: stats });
     } catch (error) {
-      setError(new Error(`Failed to fetch notification stats: ${toError(error).message}`));
+      dispatch({
+        type: 'STATS_FETCH_ERROR',
+        payload: new Error(`Failed to fetch notification stats: ${toError(error).message}`),
+      });
     }
   };
 
   const markAsRead = async (notificationId: string) => {
+    dispatch({ type: 'MARK_READ_START' });
     try {
       await getPushService().markRead(notificationId);
 
-      setNotifications(prev =>
-        prev.map(notification =>
-          notification.id === notificationId
-            ? { ...notification, read: true }
-            : notification
-        )
-      );
-
-      setUnreadCount(prev => Math.max(0, prev - 1));
+      dispatch({ type: 'MARK_READ_SUCCESS', payload: { notificationId } });
 
       fetchNotificationStats();
     } catch (error) {
-      setError(new Error(`Failed to mark notification ${notificationId} as read: ${toError(error).message}`));
+      dispatch({
+        type: 'MARK_READ_ERROR',
+        payload: new Error(`Failed to mark notification ${notificationId} as read: ${toError(error).message}`),
+      });
     }
   };
 
   const markAllAsRead = async () => {
+    dispatch({ type: 'MARK_READ_START' });
     try {
       // This assumes the core SDK has a markAllRead method
       // If it doesn't, we would need to iterate through unread notifications
       // and mark each one as read
       await Promise.all(
-        notifications
+        state.notifications.data
           .filter(notification => !notification.read)
           .map(notification => getPushService().markRead(notification.id))
       );
 
-      // Update all notifications in state to reflect read status
-      setNotifications(prev =>
-        prev.map(notification => ({ ...notification, read: true }))
-      );
-
-      // Reset unread count
-      setUnreadCount(0);
+      dispatch({ type: 'MARK_ALL_READ_SUCCESS' });
 
       // Refresh stats
       fetchNotificationStats();
     } catch (error) {
-      setError(new Error(`Failed to mark all notifications as read: ${toError(error).message}`));
+      dispatch({
+        type: 'MARK_READ_ERROR',
+        payload: new Error(`Failed to mark all notifications as read: ${toError(error).message}`),
+      });
     }
   };
 
   // Request notification permission
   const requestPermission = async (): Promise<boolean> => {
+    dispatch({ type: 'PERMISSION_REQUEST_START' });
     try {
-      setIsPermissionRequested(true);
       const granted = await getPushService().requestPermission();
-      setHasPermission(granted);
+      dispatch({ type: 'PERMISSION_REQUEST_SUCCESS', payload: { hasPermission: granted } });
       return granted;
     } catch (error) {
-      setError(new Error(`Failed to request notification permission: ${toError(error).message}`));
+      dispatch({
+        type: 'PERMISSION_REQUEST_ERROR',
+        payload: new Error(`Failed to request notification permission: ${toError(error).message}`),
+      });
       return false;
     }
   };
@@ -210,17 +216,17 @@ export const TowncryerProvider: React.FC<TowncryerProviderProps> = ({
   const towncryerSDK = sdk;
 
   const contextValue: TowncryerContextValue = {
-    notifications,
-    notificationStats,
-    unreadCount,
+    notifications: state.notifications.data,
+    notificationStats: state.stats.data,
+    unreadCount: state.unreadCount,
     showNotificationCenter,
     setShowNotificationCenter,
     markAsRead,
     markAllAsRead,
     requestPermission,
-    hasPermission,
-    isPermissionRequested,
-    isInitialized,
+    hasPermission: state.hasPermission,
+    isPermissionRequested: state.isPermissionRequested,
+    isInitialized: state.initialization.status === 'success',
     setAccessToken,
     setRefreshToken,
     setCustomerId,
@@ -228,8 +234,12 @@ export const TowncryerProvider: React.FC<TowncryerProviderProps> = ({
     fetchNotifications,
     fetchNotificationStats,
     towncryerSDK,
-    error,
+    error: state.lastError,
     clearError,
+    initializationStatus: state.initialization.status,
+    notificationsStatus: state.notifications.status,
+    statsStatus: state.stats.status,
+    markReadStatus: state.markRead.status,
   };
 
   return (

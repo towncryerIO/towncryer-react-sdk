@@ -22,6 +22,10 @@ export const useNotifications = () => {
     towncryerSDK,
     error,
     clearError,
+    initializationStatus,
+    notificationsStatus,
+    statsStatus,
+    markReadStatus,
   } = useTowncryer();
 
   /**
@@ -94,5 +98,11 @@ export const useNotifications = () => {
     // Error handling
     error,
     clearError,
+
+    // Per-operation status (idle/loading/success/error)
+    initializationStatus,
+    notificationsStatus,
+    statsStatus,
+    markReadStatus,
   };
 };
