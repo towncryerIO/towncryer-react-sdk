@@ -18,3 +18,6 @@ export * from './services/pushNotificationService';
 
 // Export types
 export * from './types';
+
+// Export testing utilities (mock provider/context for consuming apps' own tests)
+export * from './testing';
