@@ -63,7 +63,7 @@
   },
   "dependencies": {
     "@towncryerio/towncryer-js-api-client": "^1.2.0-f79da7f",
-    "@towncryerio/towncryer-js-sdk": "^1.2.2",
+    "@towncryerio/towncryer-js-sdk": "^1.2.2-4ba99aa",
     "firebase": "^11.9.1"
   },
   "files": [

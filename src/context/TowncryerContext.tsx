@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useRef, ReactNode } from 'react';
-import { TowncryerSDK } from '@towncryerio/towncryer-js-sdk';
+import { ITowncryer } from '@towncryerio/towncryer-js-sdk';
 import { FirebaseConfig, PushNotification, PushNotificationStats, TowncryerContextValue, TowncryerReactConfig } from '../types';
 import { FirebasePushNotificationService, PushNotificationService } from '../services/pushNotificationService';
 
@@ -27,7 +27,7 @@ const defaultContextValue: TowncryerContextValue = {
 export const TowncryerContext = createContext<TowncryerContextValue>(defaultContextValue);
 
 export interface TowncryerProviderProps {
-  sdk: TowncryerSDK;
+  sdk: ITowncryer;
   /** Firebase configuration, required to enable browser push notifications. */
   firebaseConfig?: FirebaseConfig;
   config?: TowncryerReactConfig;
