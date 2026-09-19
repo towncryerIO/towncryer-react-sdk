@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useReducer, useState, useEffect, useRef, ReactNode } from 'react';
 import { ITowncryer } from '@towncryerio/towncryer-js-sdk';
+import { CreateCustomerRequest, PublishEventPayload, SendBulkMessagesPayload } from '@towncryerio/towncryer-js-api-client';
 import { FirebaseConfig, TowncryerContextValue, TowncryerReactConfig } from '../types';
 import { FirebasePushNotificationService, PushNotificationService } from '../services/pushNotificationService';
 import { initialTowncryerState, towncryerReducer } from './towncryerReducer';
@@ -22,6 +23,12 @@ const defaultContextValue: TowncryerContextValue = {
   setTokens: () => {},
   fetchNotifications: async (page?: number, size?: number) => false,
   fetchNotificationStats: async () => {},
+  createCustomer: async () => false,
+  lastCreatedCustomer: null,
+  publishEvent: async () => false,
+  lastPublishedEvent: null,
+  sendMessages: async () => false,
+  lastSentMessagesInfo: null,
   towncryerSDK: null,
   error: null,
   clearError: () => {},
@@ -29,6 +36,9 @@ const defaultContextValue: TowncryerContextValue = {
   notificationsStatus: 'idle',
   statsStatus: 'idle',
   markReadStatus: 'idle',
+  createCustomerStatus: 'idle',
+  publishEventStatus: 'idle',
+  sendMessagesStatus: 'idle',
 };
 
 export const TowncryerContext = createContext<TowncryerContextValue>(defaultContextValue);
@@ -192,6 +202,51 @@ export const TowncryerProvider: React.FC<TowncryerProviderProps> = ({
     }
   };
 
+  const createCustomer = async (customer: CreateCustomerRequest) => {
+    dispatch({ type: 'CREATE_CUSTOMER_START' });
+    try {
+      const response = await sdk.createCustomer(customer);
+      dispatch({ type: 'CREATE_CUSTOMER_SUCCESS', payload: response });
+      return response;
+    } catch (error) {
+      dispatch({
+        type: 'CREATE_CUSTOMER_ERROR',
+        payload: new Error(`Failed to create customer: ${toError(error).message}`),
+      });
+      return false as const;
+    }
+  };
+
+  const publishEvent = async (event: PublishEventPayload) => {
+    dispatch({ type: 'PUBLISH_EVENT_START' });
+    try {
+      const response = await sdk.publishEvent(event);
+      dispatch({ type: 'PUBLISH_EVENT_SUCCESS', payload: response });
+      return response;
+    } catch (error) {
+      dispatch({
+        type: 'PUBLISH_EVENT_ERROR',
+        payload: new Error(`Failed to publish event: ${toError(error).message}`),
+      });
+      return false as const;
+    }
+  };
+
+  const sendMessages = async (messages: SendBulkMessagesPayload) => {
+    dispatch({ type: 'SEND_MESSAGES_START' });
+    try {
+      const response = await sdk.sendMessages(messages);
+      dispatch({ type: 'SEND_MESSAGES_SUCCESS', payload: response });
+      return response;
+    } catch (error) {
+      dispatch({
+        type: 'SEND_MESSAGES_ERROR',
+        payload: new Error(`Failed to send messages: ${toError(error).message}`),
+      });
+      return false as const;
+    }
+  };
+
   // Update access token and reinitialize if needed
   const setAccessToken = (token: string): void => {
     sdk.setAccessToken(token);
@@ -233,6 +288,12 @@ export const TowncryerProvider: React.FC<TowncryerProviderProps> = ({
     setTokens,
     fetchNotifications,
     fetchNotificationStats,
+    createCustomer,
+    lastCreatedCustomer: state.createCustomer.data,
+    publishEvent,
+    lastPublishedEvent: state.publishEvent.data,
+    sendMessages,
+    lastSentMessagesInfo: state.sendMessages.data,
     towncryerSDK,
     error: state.lastError,
     clearError,
@@ -240,6 +301,9 @@ export const TowncryerProvider: React.FC<TowncryerProviderProps> = ({
     notificationsStatus: state.notifications.status,
     statsStatus: state.stats.status,
     markReadStatus: state.markRead.status,
+    createCustomerStatus: state.createCustomer.status,
+    publishEventStatus: state.publishEvent.status,
+    sendMessagesStatus: state.sendMessages.status,
   };
 
   return (

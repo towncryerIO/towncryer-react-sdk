@@ -1,5 +1,12 @@
 import { ITowncryer } from '@towncryerio/towncryer-js-sdk';
-import { PaginatePage } from '@towncryerio/towncryer-js-api-client';
+import {
+  ApiResponse,
+  CreateCustomerRequest,
+  PaginatePage,
+  PublishEventPayload,
+  ScheduleInfo,
+  SendBulkMessagesPayload,
+} from '@towncryerio/towncryer-js-api-client';
 
 // Firebase Cloud Messaging configuration for browser push notifications
 export interface FirebaseConfig {
@@ -100,6 +107,18 @@ export interface TowncryerContextValue {
   setTokens: (accessToken: string, refreshToken: string) => void;
   fetchNotifications: (page?: number, size?: number) => Promise<PaginatePage | any>;
   fetchNotificationStats: () => Promise<void>;
+  /** Create a new customer via the core SDK. */
+  createCustomer: (customer: CreateCustomerRequest) => Promise<ApiResponse | false>;
+  /** The response from the most recent `createCustomer` call, if any. */
+  lastCreatedCustomer: ApiResponse | null;
+  /** Publish an event via the core SDK. */
+  publishEvent: (event: PublishEventPayload) => Promise<ApiResponse | false>;
+  /** The response from the most recent `publishEvent` call, if any. */
+  lastPublishedEvent: ApiResponse | null;
+  /** Send bulk messages (emails, push notifications, SMS) via the core SDK. */
+  sendMessages: (messages: SendBulkMessagesPayload) => Promise<ScheduleInfo | false>;
+  /** The schedule info from the most recent `sendMessages` call, if any. */
+  lastSentMessagesInfo: ScheduleInfo | null;
   towncryerSDK: ITowncryer | null;
   /** The most recent error raised during SDK initialization or a notification action, if any. */
   error: Error | null;
@@ -113,6 +132,12 @@ export interface TowncryerContextValue {
   statsStatus: AsyncStatus;
   /** Status of the most recent `markAsRead`/`markAllAsRead` call. */
   markReadStatus: AsyncStatus;
+  /** Status of the most recent `createCustomer` call. */
+  createCustomerStatus: AsyncStatus;
+  /** Status of the most recent `publishEvent` call. */
+  publishEventStatus: AsyncStatus;
+  /** Status of the most recent `sendMessages` call. */
+  sendMessagesStatus: AsyncStatus;
 }
 
 export interface NotificationBannerProps {
